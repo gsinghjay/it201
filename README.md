@@ -1,5 +1,7 @@
 # IT201-009
- 
+
+## [Sprint 2 on itch.io](https://singhjay.itch.io/sprint2final)
+
 **Code Features:**
 
 1.  **Speed Boost Power-Up System with Visual Trail****:** Implements a temporary speed boost with visual trail effect when collecting pickups.
