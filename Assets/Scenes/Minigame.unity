@@ -4945,7 +4945,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db69bc7a7da6464e9243f379e8aa873, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 1747867500}
 --- !u!195 &1448001322
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5648,6 +5648,12 @@ MonoBehaviour:
   speedBoostDuration: 1.5
   trailColor: {r: 0, g: 0, b: 1, a: 1}
   trailWidth: 1
+--- !u!4 &1747867500 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8855052669661678444, guid: 2dfbb63c9cdf7504faf4ff26b0581598,
+    type: 3}
+  m_PrefabInstance: {fileID: 728552409}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1806186939
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6545,7 +6551,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2db69bc7a7da6464e9243f379e8aa873, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 1747867500}
 --- !u!195 &2107840679
 NavMeshAgent:
   m_ObjectHideFlags: 0
