@@ -1557,7 +1557,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 47e65661af670440db8da1379e7f0585, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: d12c7b170a0f06644bad9611be46743c, type: 2}
   m_BuildHeightMesh: 0
 --- !u!1 &481814152
 GameObject:
@@ -3517,7 +3517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d3ad491768324a9394b22ea0eb6ade9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 1747867500}
 --- !u!1001 &967933870
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4946,6 +4946,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 1747867500}
+  updateInterval: 1
 --- !u!195 &1448001322
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5849,7 +5850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 290d6120919b34a30b4d3c346654f93d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 1747867500}
   followDistance: 2
   stopDistance: 1
 --- !u!195 &1920308597
@@ -6552,6 +6553,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 1747867500}
+  updateInterval: 1
 --- !u!195 &2107840679
 NavMeshAgent:
   m_ObjectHideFlags: 0
