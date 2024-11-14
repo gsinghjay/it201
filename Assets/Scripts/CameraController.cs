@@ -1,23 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    [SerializeField] private Transform playerTransform; // Cache Transform instead of GameObject
+    [SerializeField]
+    private Transform playerTransform;
+
     private Vector3 offset;
 
-    private void Awake() // Use Awake instead of Start for initialization
+    private void Awake()
     {
         if (playerTransform == null)
         {
-            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+            Debug.LogError("CameraController: Player Transform is not assigned.");
+            return;
         }
         offset = transform.position - playerTransform.position;
     }
 
     private void LateUpdate()
     {
-        transform.position = playerTransform.position + offset;
+        if (playerTransform != null)
+        {
+            transform.position = playerTransform.position + offset;
+        }
     }
 }

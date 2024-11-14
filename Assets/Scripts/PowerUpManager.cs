@@ -1,18 +1,19 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Manages temporary power-ups and their effects on the player
-/// </summary>
 public class PowerUpManager : MonoBehaviour
 {
     [Header("Speed Boost Settings")]
-    [SerializeField] private float speedBoostMultiplier = 2f;
-    [SerializeField] private float speedBoostDuration = 1f;
+    [SerializeField]
+    private float speedBoostMultiplier = 2f;
+    [SerializeField]
+    private float speedBoostDuration = 1f;
 
     [Header("Trail Settings")]
-    [SerializeField] private Color trailColor = Color.blue;
-    [SerializeField] private float trailWidth = 0.5f;
+    [SerializeField]
+    private Color trailColor = Color.blue;
+    [SerializeField]
+    private float trailWidth = 0.5f;
 
     private PlayerController playerController;
     private TrailRenderer trailRenderer;
@@ -28,12 +29,18 @@ public class PowerUpManager : MonoBehaviour
     private void SetupComponents()
     {
         playerController = GetComponent<PlayerController>();
-        trailRenderer = gameObject.AddComponent<TrailRenderer>();
-        
         if (playerController == null)
         {
-            Debug.LogError("PowerUpManager requires a PlayerController component!");
+            Debug.LogError("PowerUpManager: PlayerController component not found!");
+            return;
         }
+
+        trailRenderer = GetComponent<TrailRenderer>();
+        if (trailRenderer == null)
+        {
+            Debug.LogError("PowerUpManager: TrailRenderer component not found!");
+        }
+
         originalSpeed = playerController.Speed;
     }
 
@@ -43,20 +50,18 @@ public class PowerUpManager : MonoBehaviour
         {
             trailRenderer.startWidth = trailWidth;
             trailRenderer.endWidth = 0f;
-            trailRenderer.time = 0.5f; // How long the trail remains visible
+            trailRenderer.time = 0.5f;
             trailRenderer.startColor = trailColor;
             trailRenderer.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f);
-            trailRenderer.enabled = false; // Start with trail disabled
-            
-            // Create a material for the trail
-            Material trailMaterial = new Material(Shader.Find("Sprites/Default"));
-            trailRenderer.material = trailMaterial;
+            trailRenderer.enabled = false;
+
+            if (trailRenderer.material == null)
+            {
+                trailRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            }
         }
     }
 
-    /// <summary>
-    /// Activates speed boost power-up
-    /// </summary>
     public void ActivateSpeedBoost()
     {
         if (!isSpeedBoosted)
@@ -65,8 +70,7 @@ public class PowerUpManager : MonoBehaviour
         }
         else
         {
-            // Reset the current boost coroutine
-            StopAllCoroutines();
+            StopCoroutine(ApplySpeedBoost());
             StartCoroutine(ApplySpeedBoost());
         }
     }
@@ -74,18 +78,15 @@ public class PowerUpManager : MonoBehaviour
     private IEnumerator ApplySpeedBoost()
     {
         isSpeedBoosted = true;
-        
-        // Enable trail and apply speed boost
+
         if (trailRenderer != null)
         {
             trailRenderer.enabled = true;
         }
         playerController.Speed = originalSpeed * speedBoostMultiplier;
 
-        // Wait for duration
         yield return new WaitForSeconds(speedBoostDuration);
 
-        // Reset speed and disable trail
         playerController.Speed = originalSpeed;
         if (trailRenderer != null)
         {

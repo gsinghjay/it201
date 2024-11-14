@@ -1,49 +1,25 @@
-using System.Collections;
 using UnityEngine;
-
-
-/// Manages the respawn functionality for the player, handling both death and fall detection.
+using System.Collections;
 
 public class RespawnManager : MonoBehaviour
 {
-    
-    /// Reference to the player GameObject.
-    
     [SerializeField]
     private GameObject player;
 
-[SerializeField] public Vector3 respawnPoint = Vector3.zero;
+    [SerializeField]
+    public Vector3 respawnPoint = Vector3.zero;
 
-    
-    /// The Y-axis threshold below which the player is considered fallen.
-    
     [SerializeField]
     private float fallThreshold = -10f;
 
-    
-    /// Delay before the player is respawned after death or fall.
-    
     [SerializeField]
     private float respawnDelay = 2f;
 
-    
-    /// Flag to indicate if the respawn process is currently active.
-    
     private bool isRespawning = false;
 
-    
-    /// Reference to the PlayerController script.
-    
     private PlayerController playerController;
-
-    
-    /// Reference to the Rigidbody component of the player.
-    
     private Rigidbody playerRigidbody;
 
-    
-    /// Initializes the RespawnManager by setting up references.
-    
     private void Start()
     {
         if (player == null)
@@ -67,9 +43,6 @@ public class RespawnManager : MonoBehaviour
         }
     }
 
-    
-    /// Updates every frame to check if the player has fallen below the fall threshold.
-    
     private void Update()
     {
         if (player == null || isRespawning) return;
@@ -80,24 +53,19 @@ public class RespawnManager : MonoBehaviour
         }
     }
 
-    
-    /// Handles the respawn process by initiating the respawn sequence.
-    
     public void HandleRespawn()
     {
         if (isRespawning) return;
 
         isRespawning = true;
-        //playerController.HandleDeath(); // Assumes PlayerController has a HandleDeath method
-        Invoke(nameof(RespawnPlayer), respawnDelay);
+        StartCoroutine(RespawnPlayer());
     }
 
-    
-    /// Respawns the player at the designated respawn point.
-    
-    private void RespawnPlayer()
+    private IEnumerator RespawnPlayer()
     {
-        if (player == null) return;
+        yield return new WaitForSeconds(respawnDelay);
+
+        if (player == null) yield break;
 
         player.transform.position = respawnPoint;
         player.transform.rotation = Quaternion.identity;
@@ -109,15 +77,14 @@ public class RespawnManager : MonoBehaviour
         }
 
         player.SetActive(true);
-        playerController.ResetPlayer(); // Assumes PlayerController has a ResetPlayer method
+        if (playerController != null)
+        {
+            playerController.ResetPlayer();
+        }
 
         isRespawning = false;
     }
 
-    
-    /// Sets a new respawn point for the player.
-    
-    /// <param name="newRespawnPoint">The new position to respawn the player.</param>
     public void SetRespawnPoint(Vector3 newRespawnPoint)
     {
         respawnPoint = newRespawnPoint;

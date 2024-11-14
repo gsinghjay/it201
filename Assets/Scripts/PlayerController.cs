@@ -3,22 +3,23 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
-/// <summary>
-/// Controls player movement, interactions, and game state
-/// </summary>
 public class PlayerController : MonoBehaviour
 {
-       public float Speed
-       {
-              get { return speed; }
-              set { speed = value; }
-       }
+    public float Speed
+    {
+        get => speed;
+        set => speed = value;
+    }
+
     [Header("Movement")]
+    [SerializeField]
+    private float speed = 10f;
+    [SerializeField]
+    private float rotationSpeed = 720f;
+
     private Rigidbody rb;
     private float movementX;
     private float movementY;
-    [SerializeField] private float speed = 10f;  // Changed from 0 to 10
-    [SerializeField] private float rotationSpeed = 720f;
 
     [Header("Animation")]
     private Animator animator;
@@ -46,106 +47,102 @@ public class PlayerController : MonoBehaviour
 
     [Header("Components")]
     private RespawnManager respawnManager;
+    private PowerUpManager powerUpManager;
 
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         respawnManager = FindObjectOfType<RespawnManager>();
-        
+        powerUpManager = GetComponent<PowerUpManager>();
+
         if (respawnManager == null)
         {
-            Debug.LogError("RespawnManager not found in scene!");
+            Debug.LogError("PlayerController: RespawnManager not found in scene!");
         }
         if (animator == null)
         {
-            Debug.LogError("Animator component not found!");
+            Debug.LogError("PlayerController: Animator component not found!");
         }
-        
+        if (powerUpManager == null)
+        {
+            Debug.LogError("PlayerController: PowerUpManager component not found!");
+        }
+
         InitializeGameState();
     }
 
-       void OnMove(InputValue movementValue)
-       {
-       if (isDead) return;
-       
-       // Get the input value as Vector2
-       Vector2 movementVector = movementValue.Get<Vector2>();
-       
-       // Normalize the input to prevent faster diagonal movement
-       if (movementVector.magnitude > 1f)
-       {
-              movementVector.Normalize();
-       }
-       
-       // Store the movement values
-       movementX = movementVector.x;
-       movementY = movementVector.y;
-       }
-
-private void FixedUpdate()
-{
-    if (!isGameActive || isDead) return;
-    
-    Vector3 movement = new Vector3(movementX, 0.0f, movementY);
-    
-    if (movement.magnitude > 0.1f)
+    private void OnMove(InputValue movementValue)
     {
-        // Rotate the character using fixedDeltaTime
-        Quaternion toRotation = Quaternion.LookRotation(movement);
-        transform.rotation = Quaternion.RotateTowards(
-            transform.rotation,
-            toRotation,
-            rotationSpeed * Time.fixedDeltaTime
-        );
+        if (isDead) return;
 
-        // Move the character using fixedDeltaTime and ForceMode
-        rb.AddForce(movement * speed * Time.fixedDeltaTime, ForceMode.VelocityChange);
-        
-        // Limit velocity for consistent movement speed
-        float maxSpeed = speed * Time.fixedDeltaTime;
-        if (rb.velocity.magnitude > maxSpeed)
+        Vector2 movementVector = movementValue.Get<Vector2>();
+
+        if (movementVector.magnitude > 1f)
         {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+            movementVector.Normalize();
         }
 
-        // Animate
-        if (animator != null)
+        movementX = movementVector.x;
+        movementY = movementVector.y;
+    }
+
+    private void FixedUpdate()
+    {
+        if (!isGameActive || isDead) return;
+
+        Vector3 movement = new Vector3(movementX, 0.0f, movementY);
+
+        if (movement.magnitude > 0.1f)
         {
-            animator.SetBool(IsMoving, true);
+            Quaternion toRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                toRotation,
+                rotationSpeed * Time.fixedDeltaTime
+            );
+
+            rb.AddForce(movement * speed * Time.fixedDeltaTime, ForceMode.VelocityChange);
+
+            float maxSpeed = speed;
+            if (rb.velocity.magnitude > maxSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * maxSpeed;
+            }
+
+            if (animator != null)
+            {
+                animator.SetBool(IsMoving, true);
+            }
+        }
+        else
+        {
+            if (animator != null)
+            {
+                animator.SetBool(IsMoving, false);
+            }
+
+            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * 5f);
         }
     }
-    else
-    {
-        if (animator != null)
-        {
-            animator.SetBool(IsMoving, false);
-        }
-        
-        // Gradually slow down when not moving
-        rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * 5f);
-    }
-}
 
-void OnTriggerEnter(Collider other)
-{
-    if (!isGameActive || isDead) return;
-
-    if (other.gameObject.CompareTag("PickUp"))
+    private void OnTriggerEnter(Collider other)
     {
-        other.gameObject.SetActive(false);
-        count++;
-        currentTime += PICKUP_TIME_BONUS;
-        SetCountText();
-        
-        // Activate speed boost
-        PowerUpManager powerUpManager = GetComponent<PowerUpManager>();
-        if (powerUpManager != null)
+        if (!isGameActive || isDead) return;
+
+        if (other.CompareTag("PickUp"))
         {
-            powerUpManager.ActivateSpeedBoost();
+            other.gameObject.SetActive(false);
+            count++;
+            currentTime += PICKUP_TIME_BONUS;
+            SetCountText();
+
+            if (powerUpManager != null)
+            {
+                powerUpManager.ActivateSpeedBoost();
+            }
         }
     }
-}
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -157,90 +154,86 @@ void OnTriggerEnter(Collider other)
         }
     }
 
-public void HandleDeath()
-{
-    if (isDead) return; // Prevent multiple death calls
-    
-    Debug.Log("HandleDeath called");
-    isDead = true;
-    isGameActive = false;
-    
-    if (animator != null)
+    public void HandleDeath()
     {
-        animator.SetTrigger(Die);
-        StartCoroutine(DisableAfterDeathAnimation());
-    }
-    else
-    {
-        Debug.Log("No animator - disabling immediately");
-        gameObject.SetActive(false);
-        // Call respawn manager immediately if no animation
-        if (respawnManager != null)
+        if (isDead) return;
+
+        Debug.Log("HandleDeath called");
+        isDead = true;
+        isGameActive = false;
+
+        if (animator != null)
         {
-            respawnManager.HandleRespawn();
+            animator.SetTrigger(Die);
+            StartCoroutine(DisableAfterDeathAnimation());
+        }
+        else
+        {
+            Debug.Log("PlayerController: No animator - disabling immediately");
+            gameObject.SetActive(false);
+            if (respawnManager != null)
+            {
+                respawnManager.HandleRespawn();
+            }
         }
     }
-}
-private IEnumerator DisableAfterDeathAnimation()
-{
-    Debug.Log("Starting death animation");
-    // Wait for animation to complete
-    yield return new WaitForSeconds(1f); // Adjust based on death animation length
-    
-    // Only disable if we're still in death state (not respawning)
-    if (isDead && !isGameActive)
+
+    private IEnumerator DisableAfterDeathAnimation()
     {
-        Debug.Log("Disabling player after death animation");
-        gameObject.SetActive(false);
-        
-        // Call respawn manager after player is disabled
-        if (respawnManager != null)
+        Debug.Log("Starting death animation");
+        yield return new WaitForSeconds(1f);
+
+        if (isDead && !isGameActive)
         {
-            respawnManager.HandleRespawn();
+            Debug.Log("Disabling player after death animation");
+            gameObject.SetActive(false);
+
+            if (respawnManager != null)
+            {
+                respawnManager.HandleRespawn();
+            }
         }
     }
-}
 
-
-public void ResetPlayer()
-{
-    Debug.Log("ResetPlayer called");
-    isDead = false;
-    isGameActive = true;
-    rb.velocity = Vector3.zero;
-    rb.angularVelocity = Vector3.zero;
-    
-    if (animator != null)
+    public void ResetPlayer()
     {
-        animator.SetBool(IsMoving, false);
-    }
-    
-    // Make sure the GameObject is active
-    gameObject.SetActive(true);
-    
-    // Reset game state without resetting count or timer
-    InitializeGameState();
-}
+        Debug.Log("ResetPlayer called");
+        isDead = false;
+        isGameActive = true;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
 
-private void InitializeGameState()
-{
-    Debug.Log("InitializeGameState called");
-    isGameActive = true;
-    isDead = false;
-    SetCountText();
-    winTextObject.SetActive(false);
-    
-    // Reset position if needed
-    if (respawnManager != null)
-    {
-        transform.position = respawnManager.respawnPoint;
-        transform.rotation = Quaternion.identity;
+        if (animator != null)
+        {
+            animator.SetBool(IsMoving, false);
+        }
+
+        gameObject.SetActive(true);
+
+        InitializeGameState();
     }
-}
+
+    private void InitializeGameState()
+    {
+        Debug.Log("InitializeGameState called");
+        isGameActive = true;
+        isDead = false;
+        SetCountText();
+        winTextObject.SetActive(false);
+
+        if (respawnManager != null)
+        {
+            transform.position = respawnManager.respawnPoint;
+            transform.rotation = Quaternion.identity;
+        }
+    }
 
     private void SetCountText()
     {
-        countText.text = "Count: " + count.ToString();
+        if (countText != null)
+        {
+            countText.text = $"Count: {count}";
+        }
 
         if (count == 4)
         {
@@ -258,7 +251,7 @@ private void InitializeGameState()
         if (eastWall != null)
         {
             eastWall.SetActive(false);
-            
+
             GameObject firstLevelEnemy = GameObject.FindGameObjectWithTag("Enemy");
             if (firstLevelEnemy != null)
             {
@@ -272,19 +265,19 @@ private void InitializeGameState()
         }
     }
 
-    /// <summary>
-    /// Handles the victory condition
-    /// </summary>
     private void HandleVictory()
     {
         isGameActive = false;
-        winTextObject.SetActive(true);
-        
+        if (winTextObject != null)
+        {
+            winTextObject.SetActive(true);
+        }
+
         if (animator != null)
         {
             animator.SetTrigger(Victory);
         }
-        
+
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
         foreach (GameObject enemy in enemies)
         {
@@ -292,7 +285,7 @@ private void InitializeGameState()
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (isGameActive && !isDead)
         {
@@ -317,15 +310,22 @@ private void InitializeGameState()
         {
             int minutes = Mathf.FloorToInt(currentTime / 60);
             int seconds = Mathf.FloorToInt(currentTime % 60);
-            timerText.text = string.Format("Time: {0:00}:{1:00}", minutes, seconds);
+            timerText.text = $"Time: {minutes:00}:{seconds:00}";
         }
     }
 
     private void GameOver()
     {
         isGameActive = false;
-        winTextObject.gameObject.SetActive(true);
-        winTextObject.GetComponent<TextMeshProUGUI>().text = "Time's Up - Game Over!";
+        if (winTextObject != null)
+        {
+            winTextObject.SetActive(true);
+            TextMeshProUGUI tmPro = winTextObject.GetComponent<TextMeshProUGUI>();
+            if (tmPro != null)
+            {
+                tmPro.text = "Time's Up - Game Over!";
+            }
+        }
         HandleDeath();
     }
 }
