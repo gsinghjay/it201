@@ -42,8 +42,8 @@ public class PlayerController : MonoBehaviour
     public GameObject level2Enemy;
 
     [Header("Timer Settings")]
-    private float currentTime = 20f;
-    private const float PICKUP_TIME_BONUS = 5f;
+    private float currentTime = 16f;
+    private const float PICKUP_TIME_BONUS = 10f;
 
     [Header("Components")]
     private RespawnManager respawnManager;
